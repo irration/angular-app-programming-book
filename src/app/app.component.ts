@@ -1,10 +1,12 @@
 import { Component } from '@angular/core';
 import { Jsonp, URLSearchParams } from '@angular/http';
+import { HatenaService } from './hatena.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'],
+  providers: [HatenaService]
 })
 export class AppComponent {
   comments: string[] = [];
@@ -14,38 +16,29 @@ export class AppComponent {
   name = '';
   title = 'app';
 
-  constructor(private jsonp: Jsonp) {
+  constructor(private hatena: HatenaService) {
   
   }
 
   onclick() {
-    let params = new URLSearchParams();
-    params.set('url', this.url);
-    params.set('callback', 'JSONP_CALLBACK');
-
-    this.jsonp.get('http://b.hatena.ne.jp/entry/jsonlite/', 
-      { search: params })
+    this.hatena.requestGet(this.url)
       .subscribe(
-        response => {
-          let data = response.json() || {};
-          this.count = data.count;
+        data => {
           let result: string[] = [];
-          data.bookmarks.forEach((value: any) => {
+          data.bookmarks.forEach(function(value: any) {
             if (value.comment !== '') {
-              console.log(value);
-              result.push(value.comment);
+              result.push(value.comment)
             }
           });
           this.comments = result;
+          this.count = data.count;
         },
-        error =>  { 
-          console.log(error);
+        error => {
           this.count = 0;
           this.comments = [];
-          console.log('Failed to access to the hatena server.');
+          console.log('Failed to access Hatena server.');
         }
-      )
-
+      );
   }
   
 
